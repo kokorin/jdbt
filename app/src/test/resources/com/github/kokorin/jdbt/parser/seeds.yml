@@ -1,0 +1,10 @@
+version: 2
+
+seeds:
+  - name: my_seed
+    description: first seed
+    columns:
+      - name: id
+        tests:
+          - unique
+      - name: message

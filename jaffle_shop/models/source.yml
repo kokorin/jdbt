@@ -1,0 +1,10 @@
+#version: 2
+#sources:
+#  - name: jaffle_shop
+#    database: raw
+#    schema: public
+#    tables:
+#      - name: orders
+#        columns:
+#          - name: id
+#          - name: price_in_usd
