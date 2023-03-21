@@ -27,7 +27,7 @@ class ConfigResolverTest {
                                 "parent_level" to "parent",
                                 "both_levels" to "parent",
                             ),
-                    Locator.root to Config(
+                    Locator() to Config(
                         "root_level" to "root"
                     )
                 )
