@@ -87,7 +87,7 @@ object ProjectPropsDeserializer : StdDeserializer<ProjectProps>(ProjectProps::cl
                 }
         }
 
-        return asLocatorToConfig(Locator.root, node)
+        return asLocatorToConfig(Locator(), node)
             .filterValues(Config::isNotEmpty)
     }
 }
