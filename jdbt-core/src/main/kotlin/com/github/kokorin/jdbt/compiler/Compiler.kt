@@ -9,7 +9,7 @@ import com.github.kokorin.jdbt.template.TemplateEngine
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption.*
 
-class ProjectCompiler(
+class Compiler(
     private val project: Project,
     private val target: ProfileTarget
 ) {

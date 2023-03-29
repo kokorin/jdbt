@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
 
-class ProjectCompilerTest {
+class CompilerTest {
 
     @Test
     fun `compile simple model`() {
@@ -43,7 +43,7 @@ class ProjectCompilerTest {
             val compiledPath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
 
             assertThat(
-                ProjectCompiler(project, target).compileModel(
+                Compiler(project, target).compileModel(
                     modelResource,
                     mapOf("simple" to Config("database" to "main", "schema" to "main"))
                 )
@@ -91,7 +91,7 @@ class ProjectCompilerTest {
             val complexResource = modelResources["complex"]!!
 
             assertNotNull(project)
-            val actual = ProjectCompiler(project, target).compileModel(
+            val actual = Compiler(project, target).compileModel(
                 complexResource,
                 mapOf(
                     "simple" to Config("database" to "main", "schema" to "main"),
@@ -139,7 +139,7 @@ class ProjectCompilerTest {
             )
 
             assertNotNull(project)
-            val compiled = ProjectCompiler(project, target).compile()
+            val compiled = Compiler(project, target).compile()
 
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
 
@@ -200,7 +200,7 @@ class ProjectCompilerTest {
             )
 
             assertNotNull(project)
-            val compiled = ProjectCompiler(project, target).compile()
+            val compiled = Compiler(project, target).compile()
 
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
             val complexPath = fs.getPath("./target/jaffle_shop/compiled/models/complex.sql")
@@ -286,7 +286,7 @@ class ProjectCompilerTest {
             )
 
             assertNotNull(project)
-            val compiled = ProjectCompiler(project, target).compile()
+            val compiled = Compiler(project, target).compile()
 
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
             val complexPath = fs.getPath("./target/jaffle_shop/compiled/models/complex.sql")
@@ -381,7 +381,7 @@ class ProjectCompilerTest {
             )
 
             assertNotNull(project)
-            val compiled = ProjectCompiler(project, target).compile()
+            val compiled = Compiler(project, target).compile()
 
             assertThat(compiled.project).isEqualTo(project)
 

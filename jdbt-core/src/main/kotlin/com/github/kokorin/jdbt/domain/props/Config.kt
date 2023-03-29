@@ -38,7 +38,7 @@ data class Config(private val data: Map<String, Any>) {
     /**
      * Merges this config with another config. Key from another config is added only
      * if the same key is absent in this config.
-     * TODO more appropriate (e.g. addAbsent or addMissing?)
+     * TODO more appropriate (e.g. addAbsent or addMissing or updateAbsent?)
      */
     fun merge(other: Config): Config =
         Config(other.data + this.data)
