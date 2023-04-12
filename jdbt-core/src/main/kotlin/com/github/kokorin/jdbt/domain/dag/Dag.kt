@@ -2,22 +2,22 @@ package com.github.kokorin.jdbt.domain.dag
 
 import com.github.kokorin.jdbt.exception.CyclicGraphException
 
-class Dag(
-    private val nodes: Set<String>,
-    private val edges: Map<String, Set<String>>
+class Dag<T>(
+    val nodes: Set<T>,
+    val edges: Map<T, Set<T>>
 ) {
     init {
         traverseDepthFirst(CycleDetectingVisitor())
     }
 
-    fun nodesPostOrder(): List<String> {
-        val visitor = PostOrderCollectingVisitor()
+    fun nodesPostOrder(): List<T> {
+        val visitor = PostOrderCollectingVisitor<T>()
         traverseDepthFirst(visitor)
         return visitor.nodes
     }
 
-    private fun traverseDepthFirst(visitor: Visitor): Unit {
-        fun traverse(path: List<String>, nextNodes: Collection<String>, visitedNodes: Set<String>): Set<String> =
+    private fun traverseDepthFirst(visitor: Visitor<T>): Unit {
+        fun traverse(path: List<T>, nextNodes: Collection<T>, visitedNodes: Set<T>): Set<T> =
             nextNodes.fold(visitedNodes) { accVisitedNodes, currentNode ->
                 visitor.discover(path, currentNode)
 
@@ -40,36 +40,36 @@ class Dag(
     }
 }
 
-private interface Visitor {
-    fun discover(path: List<String>, node: String): Unit
-    fun visitPreOrder(path: List<String>, node: String): Unit
-    fun visitPostOrder(path: List<String>, node: String): Unit
+private interface Visitor<T> {
+    fun discover(path: List<T>, node: T): Unit
+    fun visitPreOrder(path: List<T>, node: T): Unit
+    fun visitPostOrder(path: List<T>, node: T): Unit
 }
 
-private class CycleDetectingVisitor : Visitor {
-    private val traversingNodes = mutableSetOf<String>()
-    override fun discover(path: List<String>, node: String) {
+private class CycleDetectingVisitor<T> : Visitor<T> {
+    private val traversingNodes = mutableSetOf<T>()
+    override fun discover(path: List<T>, node: T) {
         if (node in traversingNodes) {
             val cycle = path.dropWhile { it != node } + node
             throw CyclicGraphException(cycle)
         }
     }
 
-    override fun visitPreOrder(path: List<String>, node: String) {
+    override fun visitPreOrder(path: List<T>, node: T) {
         traversingNodes += node
     }
 
-    override fun visitPostOrder(path: List<String>, node: String) {
+    override fun visitPostOrder(path: List<T>, node: T) {
         traversingNodes -= node
     }
 }
 
-private class PostOrderCollectingVisitor : Visitor {
-    val nodes: MutableList<String> = mutableListOf()
-    override fun discover(path: List<String>, node: String) {}
-    override fun visitPreOrder(path: List<String>, node: String) {}
+private class PostOrderCollectingVisitor<T> : Visitor<T> {
+    val nodes: MutableList<T> = mutableListOf()
+    override fun discover(path: List<T>, node: T) {}
+    override fun visitPreOrder(path: List<T>, node: T) {}
 
-    override fun visitPostOrder(path: List<String>, node: String) {
+    override fun visitPostOrder(path: List<T>, node: T) {
         nodes += node
     }
 }

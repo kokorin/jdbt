@@ -145,22 +145,21 @@ class CompilerTest {
 
             assertThat(compiled.project).isEqualTo(project)
             assertThat(
-                setOf(
-                    Model(
-                        Resource(
-                            name = "simple",
-                            namespace = "jaffle_shop",
-                            locator = Locator("jaffle_shop", "simple"),
-                            path = fs.getPath("models/simple.sql")
-                        ),
-                        Config("database" to "main", "schema" to "main"),
-                        setOf(),
-                        simplePath.toAbsolutePath()
-                    )
+                compiled.models.nodes
+            ).containsExactly(
+                Model(
+                    Resource(
+                        name = "simple",
+                        namespace = "jaffle_shop",
+                        locator = Locator("jaffle_shop", "simple"),
+                        path = fs.getPath("models/simple.sql")
+                    ),
+                    Config("database" to "main", "schema" to "main"),
+                    setOf(),
+                    simplePath.toAbsolutePath()
                 )
-            ).isEqualTo(
-                compiled.models.toSet()
             )
+            assertThat(compiled.models.edges).isEmpty()
 
             assertThat(
                 Files.readAllLines(simplePath).joinToString("\n")
@@ -204,40 +203,46 @@ class CompilerTest {
 
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
             val complexPath = fs.getPath("./target/jaffle_shop/compiled/models/complex.sql")
-
-            assertThat(compiled.project).isEqualTo(project)
-            assertThat(
-                compiled.models
-            ).containsExactlyInAnyOrder(
-                Model(
+            val simple = Model(
+                Resource(
+                    name = "simple",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "simple"),
+                    path = fs.getPath("models/simple.sql")
+                ),
+                Config("database" to "main", "schema" to "main"),
+                setOf(),
+                simplePath.toAbsolutePath()
+            )
+            val complex = Model(
+                Resource(
+                    name = "complex",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "complex"),
+                    path = fs.getPath("models/complex.sql")
+                ),
+                Config("database" to "main", "schema" to "main"),
+                setOf(
                     Resource(
                         name = "simple",
                         namespace = "jaffle_shop",
                         locator = Locator("jaffle_shop", "simple"),
                         path = fs.getPath("models/simple.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(),
-                    simplePath.toAbsolutePath()
+                    )
                 ),
-                Model(
-                    Resource(
-                        name = "complex",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "complex"),
-                        path = fs.getPath("models/complex.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(
-                        Resource(
-                            name = "simple",
-                            namespace = "jaffle_shop",
-                            locator = Locator("jaffle_shop", "simple"),
-                            path = fs.getPath("models/simple.sql")
-                        )
-                    ),
-                    complexPath.toAbsolutePath()
-                )
+                complexPath.toAbsolutePath()
+            )
+
+            assertThat(compiled.project).isEqualTo(project)
+            assertThat(
+                compiled.models.nodes
+            ).containsExactlyInAnyOrder(
+                simple, complex
+            )
+            assertThat(
+                compiled.models.edges
+            ).containsExactlyInAnyOrderEntriesOf(
+                mapOf(simple to setOf(complex))
             )
 
             assertThat(
@@ -291,39 +296,45 @@ class CompilerTest {
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
             val complexPath = fs.getPath("./target/jaffle_shop/compiled/models/complex.sql")
 
-            assertThat(compiled.project).isEqualTo(project)
-            assertThat(
-                compiled.models
-            ).containsExactlyInAnyOrder(
-                Model(
+            val simple = Model(
+                Resource(
+                    name = "simple",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "simple"),
+                    path = fs.getPath("models/simple.sql")
+                ),
+                Config("database" to "main", "schema" to "main"),
+                setOf(),
+                simplePath.toAbsolutePath()
+            )
+            val complex = Model(
+                Resource(
+                    name = "complex",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "complex"),
+                    path = fs.getPath("models/complex.sql")
+                ),
+                Config("database" to "main", "schema" to "main"),
+                setOf(
                     Resource(
                         name = "simple",
                         namespace = "jaffle_shop",
                         locator = Locator("jaffle_shop", "simple"),
                         path = fs.getPath("models/simple.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(),
-                    simplePath.toAbsolutePath()
+                    )
                 ),
-                Model(
-                    Resource(
-                        name = "complex",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "complex"),
-                        path = fs.getPath("models/complex.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(
-                        Resource(
-                            name = "simple",
-                            namespace = "jaffle_shop",
-                            locator = Locator("jaffle_shop", "simple"),
-                            path = fs.getPath("models/simple.sql")
-                        )
-                    ),
-                    complexPath.toAbsolutePath()
-                )
+                complexPath.toAbsolutePath()
+            )
+            assertThat(compiled.project).isEqualTo(project)
+            assertThat(
+                compiled.models.nodes
+            ).containsExactlyInAnyOrder(
+                simple, complex
+            )
+            assertThat(
+                compiled.models.edges
+            ).containsExactlyInAnyOrderEntriesOf(
+                mapOf(simple to setOf(complex))
             )
 
             assertThat(
@@ -386,7 +397,7 @@ class CompilerTest {
             assertThat(compiled.project).isEqualTo(project)
 
             assertThat(
-                compiled.models
+                compiled.models.nodes
             ).containsExactlyInAnyOrder(
                 Model(
                     Resource(
@@ -433,6 +444,8 @@ class CompilerTest {
                     fs.getPath("./target/jaffle_shop/compiled/models/model_inplace_conf.sql").toAbsolutePath()
                 )
             )
+
+            assertThat(compiled.models.nodes).isEmpty()
         }
     }
 

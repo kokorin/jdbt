@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class DagTest {
-    private fun dag(vararg edges: Pair<String, String>): Dag =
+    private fun dag(vararg edges: Pair<String, String>): Dag<String> =
         Dag(
             nodes = edges.flatMap { listOf(it.first, it.second) }.toSet(),
             edges = edges.groupBy({ it.first }, { it.second }).mapValues { it.value.toSet() }
@@ -21,7 +21,6 @@ class DagTest {
             ).nodesPostOrder()
         ).containsExactly("3", "2", "1")
 
-        println("vvvvvvvvvvvvvvvv")
         assertThat(
             dag(
                 "1" to "2.1",
@@ -39,11 +38,7 @@ class DagTest {
     @Test
     fun `Dag with cycle can't be created`() {
         assertThat(
-            assertThrows<CyclicGraphException> {
-                dag(
-                    "1" to "1"
-                )
-            }.cycle
+            assertThrows<CyclicGraphException> { dag("1" to "1") }.cycle
         ).containsExactly("1", "1")
 
         val ex = assertThrows<CyclicGraphException> {
