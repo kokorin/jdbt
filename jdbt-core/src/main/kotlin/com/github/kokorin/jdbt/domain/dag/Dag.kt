@@ -2,7 +2,8 @@ package com.github.kokorin.jdbt.domain.dag
 
 import com.github.kokorin.jdbt.exception.CyclicGraphException
 
-class Dag<T>(
+// TODO decide if Dag should be data class or simple class
+data class Dag<T>(
     val nodes: Set<T>,
     val edges: Map<T, Set<T>>
 ) {
@@ -16,8 +17,17 @@ class Dag<T>(
         return visitor.nodes
     }
 
+    fun inverse(): Dag<T> {
+        val inverseEdges = edges
+            .flatMap { (fromNode, toNodes) -> toNodes.map { it to fromNode } }
+            .groupingBy { it.first }
+            .fold(setOf<T>()) { acc, edge -> acc + edge.second }
+
+        return Dag(nodes, inverseEdges)
+    }
+
     private fun traverseDepthFirst(visitor: Visitor<T>): Unit {
-        fun traverse(path: List<T>, nextNodes: Collection<T>, visitedNodes: Set<T>): Set<T> =
+        fun traverse(path: List<T>, nextNodes: Set<T>, visitedNodes: Set<T>): Set<T> =
             nextNodes.fold(visitedNodes) { accVisitedNodes, currentNode ->
                 visitor.discover(path, currentNode)
 
@@ -27,11 +37,10 @@ class Dag<T>(
                     visitor.visitPreOrder(path, currentNode)
                     val result = traverse(
                         path + currentNode,
-                        edges[currentNode] ?: listOf(),
+                        edges[currentNode] ?: emptySet(),
                         accVisitedNodes + currentNode
                     )
                     visitor.visitPostOrder(path, currentNode)
-                    println("result: $result")
                     result
                 }
             }

@@ -1,6 +1,7 @@
 package com.github.kokorin.jdbt.compiler
 
 import com.github.kokorin.jdbt.domain.Locator
+import com.github.kokorin.jdbt.domain.dag.Dag
 import com.github.kokorin.jdbt.domain.model.Model
 import com.github.kokorin.jdbt.domain.model.Resource
 import com.github.kokorin.jdbt.domain.props.Config
@@ -142,24 +143,22 @@ class CompilerTest {
             val compiled = Compiler(project, target).compile()
 
             val simplePath = fs.getPath("./target/jaffle_shop/compiled/models/simple.sql")
-
-            assertThat(compiled.project).isEqualTo(project)
-            assertThat(
-                compiled.models.nodes
-            ).containsExactly(
-                Model(
-                    Resource(
-                        name = "simple",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "simple"),
-                        path = fs.getPath("models/simple.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(),
-                    simplePath.toAbsolutePath()
-                )
+            val simple = Model(
+                Resource(
+                    name = "simple",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "simple"),
+                    path = fs.getPath("models/simple.sql")
+                ),
+                Config("database" to "main", "schema" to "main"),
+                setOf(),
+                simplePath.toAbsolutePath()
             )
-            assertThat(compiled.models.edges).isEmpty()
+            assertThat(compiled.project).isEqualTo(project)
+            assertThat(compiled.modelDag)
+                .isEqualTo(
+                    Dag(setOf(simple), emptyMap())
+                )
 
             assertThat(
                 Files.readAllLines(simplePath).joinToString("\n")
@@ -234,16 +233,10 @@ class CompilerTest {
             )
 
             assertThat(compiled.project).isEqualTo(project)
-            assertThat(
-                compiled.models.nodes
-            ).containsExactlyInAnyOrder(
-                simple, complex
-            )
-            assertThat(
-                compiled.models.edges
-            ).containsExactlyInAnyOrderEntriesOf(
-                mapOf(simple to setOf(complex))
-            )
+            assertThat(compiled.modelDag)
+                .isEqualTo(
+                    Dag(setOf(simple, complex), mapOf(simple to setOf(complex)))
+                )
 
             assertThat(
                 Files.readAllLines(simplePath).joinToString("\n")
@@ -326,16 +319,10 @@ class CompilerTest {
                 complexPath.toAbsolutePath()
             )
             assertThat(compiled.project).isEqualTo(project)
-            assertThat(
-                compiled.models.nodes
-            ).containsExactlyInAnyOrder(
-                simple, complex
-            )
-            assertThat(
-                compiled.models.edges
-            ).containsExactlyInAnyOrderEntriesOf(
-                mapOf(simple to setOf(complex))
-            )
+            assertThat(compiled.modelDag)
+                .isEqualTo(
+                    Dag(setOf(simple, complex), mapOf(simple to setOf(complex)))
+                )
 
             assertThat(
                 Files.readAllLines(simplePath).joinToString("\n")
@@ -396,56 +383,63 @@ class CompilerTest {
 
             assertThat(compiled.project).isEqualTo(project)
 
-            assertThat(
-                compiled.models.nodes
-            ).containsExactlyInAnyOrder(
-                Model(
-                    Resource(
-                        name = "model_without_conf",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "model_without_conf"),
-                        path = fs.getPath("models/model_without_conf.sql")
-                    ),
-                    Config("database" to "main", "schema" to "main"),
-                    setOf(),
-                    fs.getPath("./target/jaffle_shop/compiled/models/model_without_conf.sql").toAbsolutePath()
+            val model_without_conf = Model(
+                Resource(
+                    name = "model_without_conf",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "model_without_conf"),
+                    path = fs.getPath("models/model_without_conf.sql")
                 ),
-                Model(
-                    Resource(
-                        name = "model_with_conf",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "model_with_conf"),
-                        path = fs.getPath("models/model_with_conf.sql")
-                    ),
-                    Config("database" to "project_file_db", "schema" to "yaml_file_schema"),
-                    setOf(),
-                    fs.getPath("./target/jaffle_shop/compiled/models/model_with_conf.sql").toAbsolutePath()
+                Config("database" to "main", "schema" to "main"),
+                setOf(),
+                fs.getPath("./target/jaffle_shop/compiled/models/model_without_conf.sql").toAbsolutePath()
+            )
+            val model_with_conf = Model(
+                Resource(
+                    name = "model_with_conf",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "model_with_conf"),
+                    path = fs.getPath("models/model_with_conf.sql")
                 ),
-                Model(
-                    Resource(
-                        name = "model_in_subdir",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "sub", "model_in_subdir"),
-                        path = fs.getPath("models/sub/model_in_subdir.sql")
-                    ),
-                    Config("database" to "main", "schema" to "sub_schema"),
-                    setOf(),
-                    fs.getPath("./target/jaffle_shop/compiled/models/sub/model_in_subdir.sql").toAbsolutePath()
+                Config("database" to "project_file_db", "schema" to "yaml_file_schema"),
+                setOf(),
+                fs.getPath("./target/jaffle_shop/compiled/models/model_with_conf.sql").toAbsolutePath()
+            )
+            val model_in_subdir = Model(
+                Resource(
+                    name = "model_in_subdir",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "sub", "model_in_subdir"),
+                    path = fs.getPath("models/sub/model_in_subdir.sql")
                 ),
-                Model(
-                    Resource(
-                        name = "model_inplace_conf",
-                        namespace = "jaffle_shop",
-                        locator = Locator("jaffle_shop", "model_inplace_conf"),
-                        path = fs.getPath("models/model_inplace_conf.sql")
-                    ),
-                    Config("database" to "inplace_db", "schema" to "inplace_schema"),
-                    setOf(),
-                    fs.getPath("./target/jaffle_shop/compiled/models/model_inplace_conf.sql").toAbsolutePath()
-                )
+                Config("database" to "main", "schema" to "sub_schema"),
+                setOf(),
+                fs.getPath("./target/jaffle_shop/compiled/models/sub/model_in_subdir.sql").toAbsolutePath()
+            )
+            val model_inplace_conf = Model(
+                Resource(
+                    name = "model_inplace_conf",
+                    namespace = "jaffle_shop",
+                    locator = Locator("jaffle_shop", "model_inplace_conf"),
+                    path = fs.getPath("models/model_inplace_conf.sql")
+                ),
+                Config("database" to "inplace_db", "schema" to "inplace_schema"),
+                setOf(),
+                fs.getPath("./target/jaffle_shop/compiled/models/model_inplace_conf.sql").toAbsolutePath()
             )
 
-            assertThat(compiled.models.nodes).isEmpty()
+            assertThat(compiled.modelDag)
+                .isEqualTo(
+                    Dag(
+                        setOf(
+                            model_without_conf,
+                            model_with_conf,
+                            model_in_subdir,
+                            model_inplace_conf
+                        ),
+                        emptyMap()
+                    )
+                )
         }
     }
 

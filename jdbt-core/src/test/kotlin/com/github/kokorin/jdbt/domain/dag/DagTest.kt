@@ -70,4 +70,57 @@ class DagTest {
         assertThat(ex2.cycle.first()).isEqualTo(ex2.cycle.last())
 
     }
+
+    @Test
+    fun `inverse Dag is created`() {
+        assertThat(
+            dag(
+                "1" to "2"
+            ).inverse()
+        ).isEqualTo(
+            dag(
+                "2" to "1"
+            )
+        )
+
+        assertThat(
+            dag(
+                "1" to "2",
+                "2" to "3",
+            ).inverse()
+        ).isEqualTo(
+            dag(
+                "2" to "1",
+                "3" to "2",
+            )
+        )
+
+        assertThat(
+            dag(
+                "1" to "4",
+                "2" to "4",
+                "3" to "4",
+            ).inverse()
+        ).isEqualTo(
+            dag(
+                "4" to "1",
+                "4" to "2",
+                "4" to "3",
+            )
+        )
+
+        assertThat(
+            dag(
+                "1" to "2",
+                "2" to "3",
+                "1" to "3",
+            ).inverse()
+        ).isEqualTo(
+            dag(
+                "2" to "1",
+                "3" to "2",
+                "3" to "1",
+            )
+        )
+    }
 }

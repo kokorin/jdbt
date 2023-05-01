@@ -1,5 +1,6 @@
 package com.github.kokorin.jdbt.compiler
 
+import com.github.kokorin.jdbt.domain.dag.Dag
 import com.github.kokorin.jdbt.domain.model.CompiledProject
 import com.github.kokorin.jdbt.domain.model.Model
 import com.github.kokorin.jdbt.domain.model.Project
@@ -28,11 +29,21 @@ class Compiler(
         //  using `{{ config(...) }}` function)
         val models = project.models
             .map { compileModel(it, compileConfigs) }
+            .toSet()
+
+        val dag = buildDag(models)
 
         return CompiledProject(
             project,
-            models
+            dag
         )
+    }
+
+    internal fun buildDag(models: Set<Model>): Dag<Model> {
+        val modelByResource = models.associateBy { it.resource }
+        val dependencies = models.associateWith { model -> model.dependsOn.map { modelByResource[it]!! }.toSet() }
+
+        return Dag(models, dependencies).inverse()
     }
 
     internal fun resolveModelConfig(model: Resource): Config {
